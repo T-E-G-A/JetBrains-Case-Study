@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JetBrains as a Case Study: What Two Decades of Domain-Specific IDEs Tell Us About the ILPE Bet</title>
+<link href="https://api.fontshare.com/v2/css?f[]=clash-grotesk@500,600,700&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@400&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --red:#F40E2A; --navy:#111827; --grey:#C2C3C4;
+  --crimson:#A91B1B; --amber:#F29727; --teal:#22A699; --sky:#4BAAC8; --yellow:#F2BE22;
+  --nearblack:#202024; --slate:#4C5760;
+  --warmwhite:#E6DEDD; --lightgrey:#E4E4E4; --offwhite:#EFEFEF;
+  --font-display:'Clash Grotesk',sans-serif;
+  --font-body:'Satoshi',sans-serif;
+  --font-mono:'Roboto Mono',monospace;
+  --max-width:800px; --sidebar:220px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--offwhite);color:var(--navy);font-family:var(--font-body);font-size:16px;line-height:1.7;-webkit-font-smoothing:antialiased}
+
+/* COVER */
+.cover{background:var(--navy);min-height:100vh;display:flex;flex-direction:column;justify-content:space-between;padding:64px 64px 48px;position:relative;overflow:hidden}
+.cover::before{content:'';position:absolute;top:-160px;right:-160px;width:500px;height:500px;background:radial-gradient(circle,rgba(244,14,42,.07) 0%,transparent 70%);pointer-events:none}
+.cover::after{content:'';position:absolute;bottom:-80px;left:-80px;width:360px;height:360px;background:radial-gradient(circle,rgba(75,170,200,.05) 0%,transparent 70%);pointer-events:none}
+.cover-logo{display:flex;align-items:center;gap:12px}
+.cover-body{max-width:680px;margin:auto 0;padding:56px 0}
+.cover-series{font-family:var(--font-mono);font-size:10px;color:var(--teal);letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.cover-series::before{content:'';display:inline-block;width:16px;height:1px;background:var(--teal)}
+.cover-label{font-family:var(--font-mono);font-size:11px;color:var(--grey);letter-spacing:.12em;text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:12px}
+.cover-label::before{content:'';display:inline-block;width:24px;height:1px;background:var(--red)}
+.cover-title{font-family:var(--font-display);font-weight:700;font-size:clamp(28px,4.5vw,50px);line-height:1.08;color:#fff;letter-spacing:-.03em;margin-bottom:24px}
+.cover-title span{color:var(--red)}
+.cover-subtitle{font-family:var(--font-body);font-size:16px;color:var(--grey);line-height:1.55;max-width:560px}
+.cover-meta{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap}
+.cover-author-block p{font-family:var(--font-mono);font-size:12px;color:var(--slate);letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px}
+.cover-author-block h3{font-family:var(--font-display);font-weight:600;font-size:17px;color:#fff}
+.cover-meta-right{text-align:right}
+.cover-meta-right p{font-family:var(--font-mono);font-size:11px;color:var(--slate);line-height:1.8}
+.cover-tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;justify-content:flex-end}
+.cover-tag{font-family:var(--font-mono);font-size:9px;padding:3px 8px;border-radius:3px;letter-spacing:.08em;text-transform:uppercase;font-weight:500}
+.cover-tag-sky{background:rgba(75,170,200,.15);color:var(--sky);border:1px solid rgba(75,170,200,.3)}
+.cover-tag-teal{background:rgba(34,166,153,.15);color:var(--teal);border:1px solid rgba(34,166,153,.3)}
+
+/* SHELL */
+.doc-shell{display:grid;grid-template-columns:var(--sidebar) 1fr;min-height:100vh;transition:grid-template-columns .25s ease}
+
+/* SIDEBAR */
+.sidebar{position:sticky;top:0;height:100vh;overflow-y:auto;background:var(--navy);padding:28px 18px;border-right:1px solid rgba(194,195,196,.12);transition:width .25s ease,padding .25s ease}
+.sidebar::-webkit-scrollbar{width:3px}
+.sidebar::-webkit-scrollbar-thumb{background:var(--slate);border-radius:2px}
+.sidebar-collapse-btn{display:flex;align-items:center;justify-content:flex-end;margin-bottom:18px}
+.sidebar-collapse-btn button{background:none;border:none;cursor:pointer;padding:4px;color:var(--slate);display:flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;transition:color .15s ease}
+.sidebar-collapse-btn button:hover{color:#fff}
+.sidebar-collapse-btn svg{width:14px;height:14px;flex-shrink:0}
+.sidebar-logo{display:flex;align-items:center;gap:8px;margin-bottom:28px;padding-bottom:20px;border-bottom:1px solid rgba(194,195,196,.12)}
+.toc-label{font-family:var(--font-mono);font-size:9px;color:var(--slate);letter-spacing:.14em;text-transform:uppercase;margin-bottom:14px}
+.toc-list{list-style:none}
+.toc-list li{margin-bottom:2px}
+.toc-list a{display:block;font-family:var(--font-body);font-size:11.5px;color:var(--grey);text-decoration:none;padding:5px 10px;border-radius:4px;transition:all .15s ease;line-height:1.4}
+.toc-list a:hover{color:#fff;background:rgba(194,195,196,.08)}
+.toc-section{font-family:var(--font-mono);font-size:9px;color:var(--slate);letter-spacing:.1em;text-transform:uppercase;padding:14px 10px 6px;display:block}
+
+/* SIDEBAR REOPEN */
+.sidebar-reopen{display:none;position:fixed;top:50%;left:0;transform:translateY(-50%);z-index:100;background:var(--navy);border:1px solid rgba(194,195,196,.15);border-left:none;border-radius:0 8px 8px 0;padding:12px 6px;cursor:pointer;flex-direction:column;align-items:center;gap:6px;transition:background .2s ease}
+.sidebar-reopen:hover{background:#1c2a3a}
+.sidebar-reopen svg{width:14px;height:14px;color:#fff}
+.sidebar-reopen span{font-family:var(--font-mono);font-size:8px;color:var(--slate);letter-spacing:.1em;text-transform:uppercase;writing-mode:vertical-rl}
+.doc-shell.sidebar-collapsed .sidebar-reopen{display:flex}
+.doc-shell.sidebar-collapsed{grid-template-columns:0 1fr}
+.doc-shell.sidebar-collapsed .sidebar{width:0;padding:0;overflow:hidden;border-right:none}
+
+/* MOBILE TOGGLE */
+.sidebar-toggle{display:none;position:fixed;top:16px;right:16px;z-index:200;width:40px;height:40px;background:var(--navy);border:1px solid rgba(194,195,196,.2);border-radius:8px;cursor:pointer;align-items:center;justify-content:center;flex-direction:column;gap:5px;padding:10px;transition:background .2s ease}
+.sidebar-toggle:hover{background:#1c2a3a}
+.sidebar-toggle span{display:block;width:18px;height:2px;background:#fff;border-radius:2px;transition:all .25s ease;transform-origin:center}
+.sidebar-toggle.is-open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.sidebar-toggle.is-open span:nth-child(2){opacity:0;transform:scaleX(0)}
+.sidebar-toggle.is-open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:149;opacity:0;transition:opacity .25s ease}
+.sidebar-overlay.is-visible{opacity:1}
+
+/* MAIN */
+.main-content{background:var(--offwhite);padding:56px 80px 112px}
+.content-inner{max-width:var(--max-width);margin:0 auto}
+
+/* SECTIONS */
+.doc-section{margin-bottom:80px}
+.section-header{margin-bottom:40px;padding-bottom:20px;border-bottom:.5px solid var(--lightgrey)}
+.section-number{font-family:var(--font-mono);font-size:11px;color:var(--red);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.section-number::after{content:'';flex:1;height:1px;background:var(--lightgrey)}
+h2.section-title{font-family:var(--font-display);font-weight:700;font-size:26px;line-height:1.15;letter-spacing:-.025em;color:var(--navy)}
+h3{font-family:var(--font-display);font-weight:600;font-size:18px;line-height:1.2;letter-spacing:-.02em;color:var(--navy);margin-bottom:14px;margin-top:40px}
+p{font-family:var(--font-body);font-size:15.5px;line-height:1.75;color:#1a2332;margin-bottom:22px}
+strong{font-weight:600;color:var(--navy)}
+a{color:var(--sky);text-decoration:none;border-bottom:1px solid rgba(75,170,200,.3);transition:border-color .15s ease}
+a:hover{border-color:var(--sky)}
+
+/* ABSTRACT */
+.abstract-block{background:var(--navy);border-radius:10px;padding:40px;margin-bottom:56px;position:relative;overflow:hidden}
+.abstract-block::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--red)}
+.abstract-label{font-family:var(--font-mono);font-size:10px;color:var(--red);letter-spacing:.15em;text-transform:uppercase;margin-bottom:14px;display:block}
+.abstract-block p{color:var(--grey);font-size:14.5px;line-height:1.7;margin-bottom:14px}
+.abstract-block p:last-child{margin-bottom:0}
+
+/* CALLOUTS */
+.callout{border-radius:8px;padding:20px 28px;margin:28px 0;border-left:3px solid}
+.callout-insight{background:rgba(75,170,200,.06);border-color:var(--sky)}
+.callout-warning{background:rgba(242,151,39,.06);border-color:var(--amber)}
+.callout-critical{background:rgba(244,14,42,.04);border-color:var(--red)}
+.callout-success{background:rgba(34,166,153,.06);border-color:var(--teal)}
+.callout-label{font-family:var(--font-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;font-weight:500;margin-bottom:10px;display:block}
+.callout-insight .callout-label{color:var(--sky)}
+.callout-warning .callout-label{color:var(--amber)}
+.callout-critical .callout-label{color:var(--red)}
+.callout-success .callout-label{color:var(--teal)}
+.callout p{margin:0;font-size:14.5px;line-height:1.65}
+.callout p+p{margin-top:10px}
+
+/* PULL QUOTE */
+.pull-quote{border-left:4px solid var(--red);margin:40px 0;padding:20px 28px;background:rgba(244,14,42,.03);border-radius:0 8px 8px 0}
+.pull-quote p{font-family:var(--font-display);font-weight:500;font-size:18px;line-height:1.4;letter-spacing:-.01em;color:var(--navy);margin:0;font-style:italic}
+
+/* CODE */
+.code-block{background:var(--navy);border-radius:8px;overflow:hidden;margin:20px 0}
+.code-header{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid rgba(194,195,196,.1);background:rgba(255,255,255,.03)}
+.code-lang{font-family:var(--font-mono);font-size:10px;color:var(--red);letter-spacing:.1em;text-transform:uppercase}
+.code-desc{font-family:var(--font-mono);font-size:10px;color:var(--slate)}
+pre{padding:18px;overflow-x:auto;font-family:var(--font-mono);font-size:12px;line-height:1.6;color:var(--warmwhite)}
+code{font-family:var(--font-mono);font-size:12px;background:rgba(194,195,196,.12);color:var(--navy);padding:2px 6px;border-radius:3px}
+.code-block pre code{background:none;color:var(--warmwhite);padding:0}
+.code-comment{color:var(--slate)}
+.code-key{color:var(--sky)}
+.code-string{color:var(--teal)}
+.code-value{color:var(--yellow)}
+.code-red{color:var(--red)}
+.code-grey{color:var(--grey)}
+.code-green{color:#4ade80}
+
+/* STAT ROW */
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:28px 0}
+.stat-card{background:#fff;border:1px solid var(--lightgrey);border-radius:8px;padding:20px 16px;text-align:center}
+.stat-value{font-family:var(--font-display);font-weight:700;font-size:26px;line-height:1;color:var(--navy);letter-spacing:-.03em;margin-bottom:6px}
+.stat-value span{color:var(--teal)}
+.stat-value span.red{color:var(--red)}
+.stat-label{font-family:var(--font-body);font-size:11px;color:var(--slate);line-height:1.4}
+
+/* COMPARISON */
+.table-scroll{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;margin:20px 0}
+.comparison-table{width:100%;border-collapse:collapse;font-size:13px;min-width:480px}
+.comparison-table thead{background:var(--navy);color:#fff}
+.comparison-table th{font-family:var(--font-display);font-weight:600;font-size:11px;letter-spacing:.04em;padding:14px 16px;text-align:left;border-bottom:2px solid var(--red)}
+.comparison-table td{font-family:var(--font-body);font-size:12.5px;padding:11px 16px;border-bottom:1px solid var(--lightgrey);color:var(--navy);vertical-align:top;line-height:1.5}
+.comparison-table tr:last-child td{border-bottom:none}
+.comparison-table tr:nth-child(even) td{background:rgba(239,239,239,.5)}
+.badge{display:inline-block;font-family:var(--font-mono);font-size:9px;padding:2px 7px;border-radius:3px;letter-spacing:.06em;font-weight:500}
+.badge-teal{background:rgba(34,166,153,.1);color:var(--teal)}
+.badge-amber{background:rgba(242,151,39,.1);color:var(--amber)}
+.badge-red{background:rgba(244,14,42,.1);color:var(--red)}
+.badge-grey{background:rgba(76,87,96,.1);color:var(--slate)}
+
+/* TRACE BLOCK */
+.trace-block{background:var(--nearblack);border-radius:8px;padding:20px;margin:20px 0}
+.trace-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid rgba(194,195,196,.1)}
+.trace-label{font-family:var(--font-mono);font-size:10px;color:var(--slate);letter-spacing:.1em;text-transform:uppercase}
+.trace-tag{font-family:var(--font-mono);font-size:9px;padding:2px 8px;border-radius:3px;letter-spacing:.06em}
+.trace-tag-before{background:rgba(244,14,42,.15);color:var(--red)}
+.trace-tag-after{background:rgba(34,166,153,.15);color:var(--teal)}
+.trace-col{flex:1}
+.trace-cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.trace-col-label{font-family:var(--font-mono);font-size:9px;color:var(--slate);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px}
+.trace-col pre{font-size:10px;padding:0;background:none;color:var(--grey);line-height:1.7}
+.trace-col pre .hi{color:var(--sky)}
+.trace-col pre .time{color:var(--teal)}
+.trace-col pre .time-bad{color:var(--red)}
+
+/* REFERENCES */
+.ref-list{list-style:none}
+.ref-item{display:grid;grid-template-columns:28px 1fr;gap:10px;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--lightgrey)}
+.ref-item:last-child{border-bottom:none}
+.ref-num{font-family:var(--font-mono);font-size:11px;color:var(--red);padding-top:2px;font-weight:500}
+.ref-content{font-family:var(--font-body);font-size:13.5px;line-height:1.6;color:var(--navy)}
+
+/* FOOTER */
+.doc-footer{background:var(--navy);padding:40px 80px;margin-top:80px}
+.doc-footer-inner{max-width:var(--max-width);margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap}
+.doc-footer p{font-family:var(--font-mono);font-size:11px;color:var(--slate);margin:0}
+
+/* DESKTOP NOTE */
+.desktop-note{display:none;background:rgba(75,170,200,.08);border-top:1px solid rgba(75,170,200,.2);padding:10px 20px;text-align:center;font-family:var(--font-mono);font-size:10px;color:var(--sky);letter-spacing:.06em;position:sticky;top:0;z-index:50}
+
+/* RESPONSIVE */
+@media(max-width:1024px){.main-content{padding:48px 48px 80px}}
+@media(max-width:900px){
+  .sidebar-collapse-btn{display:none}
+  .sidebar-reopen{display:none!important}
+  .sidebar-toggle{display:flex}
+  .doc-shell{grid-template-columns:1fr!important}
+  .sidebar{position:fixed;top:0;left:0;height:100vh;width:min(var(--sidebar),85vw);z-index:150;transform:translateX(-100%);transition:transform .28s cubic-bezier(.4,0,.2,1);padding:24px 18px;overflow-y:auto}
+  .sidebar.is-open{transform:translateX(0)}
+  .sidebar-overlay{display:block}
+  .cover{padding:28px 24px 36px}
+  .cover-logo{padding-right:52px}
+  .cover-title{font-size:clamp(24px,7vw,40px)}
+  .cover-body{padding:36px 0}
+  .cover-meta{flex-direction:column;gap:16px}
+  .cover-meta-right{text-align:left}
+  .cover-tags{justify-content:flex-start}
+  .main-content{padding:28px 24px 64px}
+  .content-inner{max-width:100%}
+  .stat-row{grid-template-columns:1fr 1fr}
+  .trace-cols{grid-template-columns:1fr}
+  .desktop-note{display:block}
+}
+@media(max-width:600px){
+  .cover-title{font-size:clamp(20px,8vw,30px)}
+  .main-content{padding:20px 16px 48px}
+  .abstract-block{padding:20px 16px}
+  .stat-row{grid-template-columns:1fr}
+  pre{font-size:10px}
+  .section-number::after{display:none}
+}
+</style>
+</head>
+<body>
+
+<div class="desktop-note">For the best reading experience, open this document on a laptop or desktop.</div>
+
+<button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle navigation">
+  <span></span><span></span><span></span>
+</button>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- COVER -->
+<div class="cover">
+  <div class="cover-logo">
+    <img src="https://i.ibb.co/cKYBBghq/logo-larger.png" alt="Redline" style="height:32px;width:auto;display:block;">
+  </div>
+  <div class="cover-body">
+    <div class="cover-series">ILPE Paper Series &mdash; Research Note</div>
+    <div class="cover-label">Case Study &mdash; May 2026</div>
+    <h1 class="cover-title"><span>JetBrains</span> as a Case Study: What Two Decades of Domain-Specific IDEs Tell Us About the ILPE Bet</h1>
+    <p class="cover-subtitle">JetBrains made the same foundational architectural choice the ILPE proposal is making. They chose to build domain-specific environments on a shared platform foundation rather than plugins on top of existing tools. This note examines what that bet produced, what their recent AI research demonstrates about structured context and agent efficiency, and what it does and does not prove about the ILPE case.</p>
+  </div>
+  <div class="cover-meta">
+    <div class="cover-author-block">
+      <p>Author</p>
+      <h3>Tega Oviasogie</h3>
+    </div>
+    <div class="cover-meta-right">
+      <p>Founder, Redline &amp; Largence Group Ltd</p>
+      <p>LawtechUK Scaler Programme</p>
+      <p>SuperTech WM LawTech Open Innovation Lab</p>
+      <div class="cover-tags">
+        <span class="cover-tag cover-tag-sky">Research Note</span>
+        <span class="cover-tag cover-tag-teal">CC BY 4.0</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SHELL -->
+<div class="doc-shell" id="docShell">
+
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-collapse-btn">
+    <button id="collapseBtn" aria-label="Collapse sidebar">
+      <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M9 2L4 7l5 5"/></svg>
+      Collapse
+    </button>
+  </div>
+  <div class="sidebar-logo">
+    <img src="https://i.ibb.co/cKYBBghq/logo-larger.png" alt="Redline" style="height:18px;width:auto;display:block;">
+  </div>
+  <div class="toc-label">Contents</div>
+  <ul class="toc-list">
+    <li><a href="#abstract">Abstract</a></li>
+    <li><span class="toc-section">I. The Bet</span></li>
+    <li><a href="#architectural-bet">The Architectural Bet</a></li>
+    <li><span class="toc-section">II. The Evidence</span></li>
+    <li><a href="#two-decades">Two Decades of Domain-Specific IDEs</a></li>
+    <li><a href="#eval-result">Structured Context Changes AI Behaviour</a></li>
+    <li><span class="toc-section">III. The Translation</span></li>
+    <li><a href="#translation">The Translation to Legal Practice</a></li>
+    <li><a href="#limits">What JetBrains Does Not Tell Us</a></li>
+    <li><span class="toc-section">IV. Closing</span></li>
+    <li><a href="#conclusion">Conclusion</a></li>
+    <li><a href="#references">References</a></li>
+  </ul>
+</nav>
+
+<button class="sidebar-reopen" id="sidebarReopen" aria-label="Expand sidebar">
+  <svg viewBox="0 0 14 14" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round"><path d="M5 2l5 5-5 5"/></svg>
+  <span>Contents</span>
+</button>
+
+<main class="main-content">
+<div class="content-inner">
+
+<!-- ABSTRACT -->
+<section class="doc-section" id="abstract">
+  <div class="abstract-block">
+    <span class="abstract-label">Abstract</span>
+    <p>The ILPE proposal rests on a foundational architectural bet: that domain-specific legal practice environments built on a shared formal specification layer will outperform general-purpose tools with AI bolted on. This is not a novel bet. JetBrains made the same choice two decades ago in software development — building genuinely domain-specific IDEs on a shared platform foundation rather than a single general IDE with domain plugins — and the evidence of what that choice produced is now extensive.</p>
+    <p>This research note examines that evidence. It documents what JetBrains built and why the architectural distinction between a domain-specific environment and a general environment with plugins matters in practice. It presents JetBrains' May 2026 empirical research demonstrating that AI agents given IDE-native structured context outperform agents operating without it — reducing latency by up to 16%, cost by up to 13%, and budget overruns by 33% — as direct supporting evidence for the compute waste argument the ILPE papers make about legal documents. And it is honest about what the JetBrains evidence does not prove: that the formal specification foundation for legalese exists or will work as intended. The case study validates the model. It does not validate the foundation.</p>
+  </div>
+</section>
+
+<!-- SECTION I: THE BET -->
+<section class="doc-section" id="architectural-bet">
+  <div class="section-header">
+    <div class="section-number">Section I &mdash; The Bet</div>
+    <h2 class="section-title">The Architectural Bet: Platform Foundation vs. General Tool with Plugins</h2>
+  </div>
+
+  <p>When JetBrains began building development tooling in the early 2000s, a clear strategic fork existed. The dominant approach at the time was to build a general-purpose editor or IDE and extend it through plugins. Eclipse, the dominant open source IDE of that era, worked this way — a platform that could be configured to support almost any language through its plugin architecture. Eclipse was powerful, widely adopted, and extensible. It was also slow, complex to configure, and never quite right for any specific language or domain without significant effort to get it there.</p>
+
+  <p>JetBrains made a different choice. Rather than building a general environment and extending it, they built IntelliJ IDEA as a genuinely Java-native environment — one that understood Java's type system, its project model, its frameworks, and its conventions at the level of the platform rather than the plugin. The environment did not merely support Java. It was built around Java. And then, rather than extending IntelliJ IDEA with plugins for other languages, they built new environments: PyCharm for Python, WebStorm for JavaScript and TypeScript, RubyMine for Ruby, GoLand for Go, CLion for C and C++, Rider for .NET and game development, DataGrip for databases, RustRover for Rust.</p>
+
+  <div class="pull-quote">
+    <p>"JetBrains did not build VS Code. They built ten VS Codes, each one understanding its domain the way VS Code understands web development."</p>
+  </div>
+
+  <p>The distinction between the two models is architectural, not cosmetic. A plugin adds capability to a general environment. A domain-specific IDE is built from first principles around the needs of its domain and its practitioners. The difference is visible in the editor experience: a Python developer using PyCharm gets inline type inference, framework-aware autocomplete, data science notebook integration, and a debugger that understands Python's execution model natively. They do not get a general-purpose editor that has been taught to recognise Python files. They get an environment that understands Python the way a Python developer thinks about Python.</p>
+
+  <p>The shared foundation underneath all of these environments is IntelliJ Platform — the same core engine, the same plugin architecture, the same fundamental infrastructure for building IDEs. The domain-specific surface sits on top of that shared foundation. This is not a contradiction of the domain-specific principle. It is what makes the domain-specific principle economically viable. JetBrains does not rebuild the file system integration, the version control layer, or the build tool infrastructure for each new environment. They build those things once, in the shared platform, and invest the remaining resource in making each environment genuinely excellent for its specific domain.</p>
+
+  <div class="callout callout-insight">
+    <span class="callout-label">The ILPE Parallel</span>
+    <p>LegalMD, RLPN, and LKM are the IntelliJ Platform equivalent — the shared foundation that any ILPE can build on. Redline is the first domain-specific environment built on that foundation, serving the commercial contract negotiation context. Future ILPEs for litigation, legislative drafting, in-house legal operations, and legal education are the PyCharm and DataGrip equivalents — genuinely distinct environments serving distinct practitioner types, built on the same shared foundation, not plugins on top of a general-purpose document editor.</p>
+  </div>
+
+  <p>The plugin model would have produced a different outcome. An Eclipse-style general legal practice platform with plugins for contract negotiation, litigation management, and legislative drafting would be configurable in principle and mediocre in practice for each use case. Practitioners would face the same choice Eclipse developers faced: invest significant effort in configuration or accept a tool that is almost right but never quite right for your specific workflow. The legal equivalent of that experience already exists. It is called iManage. It is called Clio. It is called every general-purpose document management platform that has been extended with AI plugins rather than rebuilt around the specific intelligence needs of legal practice.</p>
+</section>
+
+<!-- SECTION II: TWO DECADES -->
+<section class="doc-section" id="two-decades">
+  <div class="section-header">
+    <div class="section-number">Section II &mdash; The Evidence</div>
+    <h2 class="section-title">Two Decades of Domain-Specific IDEs: What the Bet Produced</h2>
+  </div>
+
+  <p>The JetBrains suite as of 2026 is the most comprehensive family of domain-specific development environments built by any single company. Each environment in the suite is a distinct product with its own name, its own brand identity, its own user community, and its own deep understanding of its domain. The breadth is worth stating plainly because it is itself evidence of the model's viability.</p>
+
+  <div class="table-scroll">
+    <table class="comparison-table">
+      <thead>
+        <tr><th>Environment</th><th>Domain</th><th>Primary practitioners</th><th>What it understands natively</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>IntelliJ IDEA</strong></td><td>Java and Kotlin</td><td>Backend and enterprise engineers</td><td>JVM type system, Spring framework, Maven/Gradle project models</td></tr>
+        <tr><td><strong>PyCharm</strong></td><td>Python and data science</td><td>Python developers, data scientists, ML engineers</td><td>Python type inference, Django/Flask frameworks, Jupyter notebook integration</td></tr>
+        <tr><td><strong>WebStorm</strong></td><td>JavaScript and TypeScript</td><td>Frontend and full-stack engineers</td><td>Module resolution, React/Vue/Angular frameworks, npm ecosystem</td></tr>
+        <tr><td><strong>DataGrip</strong></td><td>Databases and SQL</td><td>Database engineers, data analysts</td><td>SQL dialects, schema introspection, query execution plans</td></tr>
+        <tr><td><strong>CLion</strong></td><td>C and C++</td><td>Systems engineers, embedded developers</td><td>CMake project models, compiler diagnostics, memory analysis</td></tr>
+        <tr><td><strong>Rider</strong></td><td>.NET and game development</td><td>.NET engineers, Unity game developers</td><td>C# type system, Unity engine integration, NuGet ecosystem</td></tr>
+        <tr><td><strong>RustRover</strong></td><td>Rust</td><td>Systems and performance engineers</td><td>Rust borrow checker, Cargo project model, lifetime analysis</td></tr>
+        <tr><td><strong>GoLand</strong></td><td>Go</td><td>Backend and infrastructure engineers</td><td>Go module system, goroutine analysis, interface satisfaction checking</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>What is notable about this table is not the number of environments but what each one understands that a general environment cannot. DataGrip does not just support SQL — it understands the specific dialect of SQL you are writing, the schema of the database you are connected to, and the execution plan your query will produce. PyCharm does not just highlight Python syntax — it understands Django's ORM conventions well enough to autocomplete field lookups and flag type mismatches in template rendering. These capabilities are not achievable through plugins on a general-purpose editor. They require the environment to be designed around the domain from first principles.</p>
+
+  <p>The market outcome of this approach is significant. JetBrains IDEs are the dominant professional development environments across most of the language domains they serve. In the Stack Overflow Developer Survey, JetBrains environments consistently rank among the most used and most loved IDEs across multiple categories. This is not because JetBrains outspent competitors on marketing. It is because practitioners who use a domain-specific environment and then try to return to a general-purpose one find they cannot go back. The intelligence the environment provides — because it understands the domain natively — is not something you can replicate with plugins and configuration.</p>
+
+  <div class="callout callout-success">
+    <span class="callout-label">The Specialism Principle</span>
+    <p>JetBrains' product strategy embodies a principle worth stating explicitly: specialism is not a limitation of scope, it is a source of depth. Each domain-specific environment is better for its practitioners precisely because it does not try to be everything to everyone. The shared platform foundation makes specialism economically viable. The specialism is what makes each environment genuinely excellent rather than generically adequate.</p>
+  </div>
+
+  <p>The legal parallel is not that Redline should try to replicate everything JetBrains has built. It is that the architectural pattern JetBrains validated — shared platform foundation enabling domain-specific surfaces — is the right model for legal practice environments, and that the market outcome JetBrains achieved suggests practitioners will choose domain-specific intelligence over general-purpose adequacy when the choice is available to them.</p>
+</section>
+
+<!-- SECTION II: EVAL RESULT -->
+<section class="doc-section" id="eval-result">
+  <div class="section-header">
+    <div class="section-number">Section II &mdash; The Evidence</div>
+    <h2 class="section-title">Structured Context Changes AI Behaviour: The May 2026 Eval Result</h2>
+  </div>
+
+  <p>In May 2026 JetBrains published an empirical research note on what happens when AI coding agents are given IDE-native search tools rather than raw shell tools. The finding is directly relevant to the ILPE compute waste argument and worth examining in detail.</p>
+
+  <p>The experiment was methodologically careful. JetBrains built a prebundled skill pairing a search prompt with a unified MCP tool — one tool with four modes: file search, text search, regex, and symbol lookup. They ran identical coding tasks with and without this IDE-native structured context, across multiple models and multiple programming languages, and measured four things: quality, latency, cost, and budget discipline. They reported only improvements that passed a significance threshold of p &lt; 0.05 with 95% confidence intervals.</p>
+
+  <div class="stat-row">
+    <div class="stat-card">
+      <div class="stat-value"><span>8.33</span>%</div>
+      <div class="stat-label">Median latency reduced (83.11s → 79.03s)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value"><span>16.44</span>%</div>
+      <div class="stat-label">P95 latency reduced (268.71s → 213.17s)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value"><span>5.60</span>%</div>
+      <div class="stat-label">Total cost reduced (USD 44.17 → USD 41.67)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value"><span>33.28</span>%</div>
+      <div class="stat-label">Budget overruns reduced (6.67% → 4.44%)</div>
+    </div>
+  </div>
+
+  <p>The headline numbers are meaningful but the trace snapshots are more revealing. They show what the difference actually looks like in an agent's path through a task.</p>
+
+  <div class="trace-block">
+    <div class="trace-header">
+      <span class="trace-label">Task: Update service and controller layers for comments and replies</span>
+    </div>
+    <div class="trace-cols">
+      <div class="trace-col">
+        <div class="trace-col-label trace-tag-before" style="display:inline-block;padding:2px 8px;border-radius:3px;margin-bottom:8px;">Before — no prebundled search</div>
+        <pre><code><span class="code-grey">agent&gt; list files</span>
+<span class="code-grey">agent&gt; search x2</span>
+<span class="code-grey">agent&gt; list files x2</span>
+<span class="code-grey">agent&gt; jar inspect x5</span>
+<span class="code-grey">agent&gt; javap</span>
+<span class="code-grey">agent&gt; jar inspect</span>
+<span class="code-grey">agent&gt; javap x5</span>
+<span class="code-grey">agent&gt; curl download</span>
+<span class="code-grey">agent&gt; decompile</span>
+<span class="code-grey">agent&gt; search</span>
+<span class="code-grey">agent&gt; find files x2</span>
+<span class="code-grey">agent&gt; read 9 files</span>
+<span class="code-green">agent&gt; edit file x8 → respond</span>
+<span class="code-red">time: 472s</span></code></pre>
+      </div>
+      <div class="trace-col">
+        <div class="trace-col-label trace-tag-after" style="display:inline-block;padding:2px 8px;border-radius:3px;margin-bottom:8px;">After — IDE-native prebundled search</div>
+        <pre><code><span class="code-key">agent&gt; read SKILL.md</span>
+<span class="code-key">agent&gt; search x3</span>
+<span class="code-key">agent&gt; read 5 files</span>
+<span class="code-key">agent&gt; read FeatureController.java</span>
+<span class="code-key">agent&gt; read 4 files</span>
+<span class="code-green">agent&gt; edit file x2 → respond</span>
+<span class="code-teal" style="color:var(--teal)">time: 127s</span>
+<span class="code-grey">
+</span>
+<span class="code-grey">
+</span>
+<span class="code-grey">
+</span>
+<span class="code-grey">
+</span>
+<span class="code-grey">
+</span></code></pre>
+      </div>
+    </div>
+  </div>
+
+  <p>The before trace is the pattern the ILPE papers describe when arguing against AI-only legal document analysis: the agent spending the majority of its steps on context discovery — understanding the project structure, finding the relevant files, comprehending the codebase — before it can do any of the semantically interesting work. The after trace is what happens when structured context exists: the agent reads the specification, runs targeted searches, reads the relevant files, and goes straight to the task. The comprehension work has already been done at the platform level. The agent does not need to redo it.</p>
+
+  <p>The cross-model validation makes the finding more robust. JetBrains re-ran the experiment with GPT 5.4 on both Java and Kotlin codebases and found the pattern held across models — latency reduced 3.75-6.92% and cost reduced 4.07-13.48% depending on the language and model. Kotlin saw the largest cost improvement at 13.48%.</p>
+
+  <p>The model adoption finding adds a further layer of nuance that is relevant to the ILPE context. Codex sent 91% of its search calls through the new IDE-native tool. Claude Opus used it for about half its searches. Claude Haiku used it only 28% of the time, preferring grep and find. JetBrains' interpretation is that Claude already has strong built-in code search capability, so it leans on what it knows, while Codex does not and therefore grabs the better tool when it is available. The practical implication: prebundled structured context fills gaps in models that lack built-in domain knowledge and supplements models that have it. It is complementary to model capability, not a replacement for it.</p>
+
+  <div class="callout callout-insight">
+    <span class="callout-label">Direct Relevance to the ILPE Compute Waste Argument</span>
+    <p>The ILPE papers argue that using AI strictly as the editor — without a formal specification layer — means the model must re-read and re-comprehend the entire document on every inference call, consuming context window and compute on structural work that should already be done. The JetBrains result is empirical evidence for the equivalent claim in software development: agents without structured IDE context spend the majority of their steps on comprehension rather than on the task. When structured context exists — when the environment already understands the domain — the agent skips straight to the semantically interesting work. The efficiency gain is not marginal. In the most dramatic example documented, the task that took 472 seconds took 127 seconds with structured context. The architectural principle is the same. The domain is different.</p>
+  </div>
+</section>
+
+<!-- SECTION III: TRANSLATION -->
+<section class="doc-section" id="translation">
+  <div class="section-header">
+    <div class="section-number">Section III &mdash; The Translation</div>
+    <h2 class="section-title">The Translation to Legal Practice</h2>
+  </div>
+
+  <p>The translation from the JetBrains evidence to the ILPE architecture is direct in structure and requires care in application.</p>
+
+  <p>IntelliJ Platform is the shared foundation. LegalMD, RLPN, and LKM are the proposed equivalent. Each JetBrains environment understands its domain natively because IntelliJ Platform provides the infrastructure — the project model, the indexing engine, the plugin architecture — and each environment builds domain-specific intelligence on top of it. Each ILPE would understand its practice area natively because LegalMD provides the formal specification of what legal documents in that area mean, LKM provides the versioned knowledge base of statutes, case law, and Precedents, and RLPN provides the relational model of how documents, parties, and obligations relate within an engagement.</p>
+
+  <p>The compute waste argument translates directly. An AI agent asked to analyse a legal document without a LegalMD-structured representation of that document is in the same position as a JetBrains agent without IDE-native search tools — it must spend most of its inference budget on comprehension rather than on analysis. What type of document is this? Who are the parties? What are the defined terms? How does clause 7 relate to clause 12? What other documents govern this engagement? All of that structural work is comprehension overhead that a formally specified LegalMD representation eliminates. The agent walks into the task with the structural context already established and goes straight to the semantically interesting questions.</p>
+
+  <p>The practitioner experience translates too. A lawyer using an ILPE should have the same experience as a developer using PyCharm rather than a generic text editor. Not a slightly better document editor. A fundamentally different relationship with their work — one where the environment understands what they are writing well enough to surface relevant intelligence in context, catch structural errors before they become problems, and provide the kind of niche-calibrated guidance that currently requires either expensive legal expertise or accepting generic AI output that may or may not be reliable.</p>
+
+  <p>The specialism principle translates most directly of all. A litigation ILPE and a contract negotiation ILPE are not two versions of the same tool. They serve different practitioners, at different points in the legal workflow, with different structural intelligence requirements. A litigation environment needs to understand pleading structure, evidence chains, chronological event mapping, and filing deadlines. A contract negotiation environment needs to understand clause types, defined term reference integrity, standard versus non-standard positions, and version history. These are distinct domains with distinct formal specification requirements. Trying to serve both in a single general-purpose environment produces the same outcome JetBrains avoided by building PyCharm and DataGrip rather than IntelliJ with plugins: something that is adequate for both and excellent for neither.</p>
+
+  <div class="callout callout-success">
+    <span class="callout-label">Redline as the First ILPE</span>
+    <p>Redline is the IntelliJ IDEA of the ILPE suite — the first environment, the proof of concept, the one that establishes the pattern and validates that the architecture works in practice. IntelliJ IDEA was not the end state of JetBrains' product strategy. It was the beginning. The existence of PyCharm, DataGrip, and RustRover is not incidental to IntelliJ IDEA's success. It is evidence that the foundational architectural bet IntelliJ IDEA represented was the right one.</p>
+  </div>
+</section>
+
+<!-- SECTION III: LIMITS -->
+<section class="doc-section" id="limits">
+  <div class="section-header">
+    <div class="section-number">Section III &mdash; The Translation</div>
+    <h2 class="section-title">What JetBrains Does Not Tell Us</h2>
+  </div>
+
+  <p>The JetBrains evidence is strong and the parallel is direct. It is also important to be precise about what it proves and what it does not, because conflating the two would overstate the current state of the ILPE proposal.</p>
+
+  <p><strong>JetBrains proves the model works when the foundation is solid.</strong> IntelliJ Platform exists. It has been built, refined, and tested over two decades. The project model, the indexing engine, the plugin architecture — all of it is real, working, production-grade infrastructure. When JetBrains measures efficiency gains from giving agents IDE-native structured context, the structured context they are giving agents is real. The AST exists. The symbol index exists. The project model exists. They are measuring the effect of using a foundation that has already been built.</p>
+
+  <p><strong>LegalMD does not yet exist.</strong> RLPN does not yet exist. LKM does not yet exist. The ILPE papers propose these things. They do not describe things that have been built and tested. The JetBrains evidence demonstrates that a formal specification foundation changes AI agent behaviour in the way the ILPE papers claim it will change AI agent behaviour on legal documents. It does not demonstrate that building a formal specification foundation for legalese is tractable, that the AI translation layer from natural language to LegalMD structured representation will work reliably on commercial contracts, or that the governance model for maintaining that foundation across jurisdictions and practice areas will achieve the quality needed for the system to be trusted.</p>
+
+  <p>These are the gaps the gaps document identified as GAP-002 and GAP-003. The JetBrains case study provides supporting evidence for the architectural model. It does not close those gaps. The compute waste argument is validated in principle. The empirical validation of whether the AI translation pipeline works reliably on legal documents at the complexity level commercial contracting requires is still needed.</p>
+
+  <div class="callout callout-warning">
+    <span class="callout-label">The Honest Boundary of This Evidence</span>
+    <p>JetBrains measured the effect of structured context that already existed. ILPE is proposing to build the structured context layer from scratch, for a domain whose formal specification has never been attempted at commercial scale, through a combination of AI translation and practitioner-contributed Precedents that have not yet been validated at the quality level needed for the system to be relied upon. The model is right. The foundation still needs to be built. Those are two different claims and conflating them would be intellectually dishonest.</p>
+  </div>
+
+  <p>There is a second important distinction. JetBrains' structured context is deterministic. An AST is an AST. A symbol index resolves a reference or it does not. There is no ambiguity, no hallucination risk, no probabilistic variation. The LegalMD structured representation of a legal document is generated by an AI translation layer. As Dahl et al. (2024) document, LLMs hallucinate at least 58% of the time on legal questions without formal specification grounding. The LegalMD Precedent layer is designed to provide that grounding and reduce that rate. But the translation layer itself introduces a probabilistic element that JetBrains' IDE-native tooling does not have. The structured context the ILPE provides to its agents will be more reliable than raw natural language processing. It will not be as deterministically reliable as a compiler-generated AST. That distinction matters and the ILPE architecture needs to account for it explicitly — through the human in command principle at the Precedent level, through graceful degradation when translation confidence is low, and through the validation methodology GAP-002 calls for.</p>
+</section>
+
+<!-- CONCLUSION -->
+<section class="doc-section" id="conclusion">
+  <div class="section-header">
+    <div class="section-number">Section IV &mdash; Closing</div>
+    <h2 class="section-title">Conclusion</h2>
+  </div>
+
+  <p>JetBrains is the strongest available evidence that the ILPE architectural bet is the right one. They made the same foundational choice — domain-specific environments on a shared platform foundation rather than general tools with domain plugins — and they made it twenty years before AI made the question interesting to the legal industry. The outcome of that choice is a suite of environments that dominate professional development tooling across more domains than any other single company, each one genuinely excellent for its practitioners rather than generically adequate for everyone.</p>
+
+  <p>Their May 2026 research adds empirical weight to the specific claim the ILPE compute waste argument makes. Agents given structured IDE-native context outperform agents operating without it across every performance dimension measured — latency, cost, and budget discipline — with no statistically significant quality degradation. The mechanism is exactly what the ILPE papers describe: structured context eliminates comprehension overhead, allowing agents to focus on semantically interesting work rather than spending the majority of their inference budget on structural discovery.</p>
+
+  <p>What JetBrains does not tell us is whether building the formal specification foundation for legalese is tractable, whether the AI translation layer will work reliably on commercial contracts, or whether the governance model for maintaining the knowledge base at the quality level legal practice requires will succeed. Those questions remain open. They are documented in the gaps paper as GAP-002 and GAP-003. The case study validates the model. It does not validate the foundation. Both matter, and only one of them exists yet.</p>
+
+  <div class="pull-quote">
+    <p>"JetBrains proved the pattern works. The question for ILPE is whether the foundation can be built. That is a different question and it still needs an answer."</p>
+  </div>
+
+  <p>The right next step suggested by this case study is not to claim the JetBrains evidence closes the remaining gaps. It is to use the JetBrains methodology — eval-driven development, controlled experiments comparing structured context versus no structured context, rigorous statistical validation before shipping — as the template for the empirical validation work that GAP-002 calls for. JetBrains did not assume IDE-native tooling would help agents. They measured it. The ILPE working group should not assume LegalMD-structured context will help AI agents on legal documents. It should measure it, with the same rigour, on real commercial contracts, before treating the claim as established.</p>
+</section>
+
+<!-- REFERENCES -->
+<section class="doc-section" id="references">
+  <div class="section-header">
+    <div class="section-number">References</div>
+    <h2 class="section-title">Reference List</h2>
+  </div>
+  <ul class="ref-list">
+    <li class="ref-item"><span class="ref-num">01</span><div class="ref-content">Dahl, M., Magesh, V., Suzgun, M. and Ho, D.E. (2024). 'Large Legal Fictions: Profiling Legal Hallucinations in Large Language Models.' <em>Journal of Legal Analysis,</em> 16(1), pp. 64--93. doi:10.1093/jla/laae003.</div></li>
+    <li class="ref-item"><span class="ref-num">02</span><div class="ref-content">JetBrains (2026). <em>JetBrains IDEs — Product Suite.</em> Available at: jetbrains.com/ides [Accessed May 2026].</div></li>
+    <li class="ref-item"><span class="ref-num">03</span><div class="ref-content">Kordjamshidi, P., Aslan, S., Seshadri, M., Barrett, L. and Santus, E. (2025). 'Reasoners or Translators? Contamination-aware Evaluation and Neuro-Symbolic Robustness on Tax Law.' Bloomberg / Michigan State University. Preprint.</div></li>
+    <li class="ref-item"><span class="ref-num">04</span><div class="ref-content">Oviasogie, T. (2026). <em>The Case for ILPE: Toward a Machine-Readable Foundation for Legal Practice.</em> White Paper v1.0. Available at: t-e-g-a.github.io/ILPE-whitepaper [Accessed May 2026].</div></li>
+    <li class="ref-item"><span class="ref-num">05</span><div class="ref-content">Oviasogie, T. (2026). <em>Building ILPE: Architecture, Distribution, and the Path to Open Standards.</em> Working Paper v0.1. Available at: t-e-g-a.github.io/Building-ILPE [Accessed May 2026].</div></li>
+    <li class="ref-item"><span class="ref-num">06</span><div class="ref-content">Shiryaev, D. (2026). 'We Gave Agents IDE-Native Search Tools. They Got Faster and Cheaper.' <em>The JetBrains AI Blog,</em> May 2026. Available at: blog.jetbrains.com/ai/2026/05/what-happens-when-you-give-agents-ide-native-seach-tools [Accessed May 2026].</div></li>
+    <li class="ref-item"><span class="ref-num">07</span><div class="ref-content">Stack Overflow (2025). <em>Developer Survey 2025: IDEs and Development Environments.</em> Available at: survey.stackoverflow.co/2025 [Accessed May 2026].</div></li>
+  </ul>
+</section>
+
+</div>
+</main>
+</div>
+
+<footer class="doc-footer">
+  <div class="doc-footer-inner">
+    <div>
+      <p>JetBrains as a Case Study &mdash; ILPE Research Note</p>
+      <p>Tega Oviasogie &mdash; May 2026</p>
+    </div>
+    <div style="text-align:right">
+      <p>&copy; 2026 Tega Oviasogie</p>
+      <p>CC BY 4.0 &mdash; ILPE Paper Series</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var shell=document.getElementById('docShell');
+  var sidebar=document.getElementById('sidebar');
+  var overlay=document.getElementById('sidebarOverlay');
+  var hamburger=document.getElementById('sidebarToggle');
+  var collapseBtn=document.getElementById('collapseBtn');
+  var reopenBtn=document.getElementById('sidebarReopen');
+  function openMobile(){sidebar.classList.add('is-open');overlay.classList.add('is-visible');hamburger.classList.add('is-open')}
+  function closeMobile(){sidebar.classList.remove('is-open');overlay.classList.remove('is-visible');hamburger.classList.remove('is-open')}
+  hamburger.addEventListener('click',function(){sidebar.classList.contains('is-open')?closeMobile():openMobile()});
+  overlay.addEventListener('click',closeMobile);
+  sidebar.querySelectorAll('a').forEach(function(l){l.addEventListener('click',function(){if(window.innerWidth<=900)closeMobile()})});
+  function collapseSidebar(){shell.classList.add('sidebar-collapsed');try{localStorage.setItem('jb-cs-sidebar','collapsed')}catch(e){}}
+  function expandSidebar(){shell.classList.remove('sidebar-collapsed');try{localStorage.setItem('jb-cs-sidebar','expanded')}catch(e){}}
+  collapseBtn.addEventListener('click',collapseSidebar);
+  reopenBtn.addEventListener('click',expandSidebar);
+  try{if(localStorage.getItem('jb-cs-sidebar')==='collapsed'&&window.innerWidth>900)shell.classList.add('sidebar-collapsed')}catch(e){}
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')closeMobile()});
+})();
+</script>
+</body>
+</html>
